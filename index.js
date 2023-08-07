@@ -28,6 +28,8 @@ async function run() {
 
     const toyCollection = client.db("ToyEmporium").collection("Toys");
 
+    const addedToyCollection = client.db("ToyEmporium").collection("addedToys");
+
     app.get("/toys", async (req, res) => {
       const result = await toyCollection.find().toArray();
       res.send(result);
@@ -37,6 +39,13 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await toyCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.post("/addedToys", async (req, res) => {
+      const toy = req.body;
+      console.log(toy);
+      const result = await addedToyCollection.insertOne(toy);
       res.send(result);
     });
 

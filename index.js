@@ -44,8 +44,21 @@ async function run() {
 
     app.post("/addedToys", async (req, res) => {
       const toy = req.body;
-      console.log(toy);
       const result = await addedToyCollection.insertOne(toy);
+      res.send(result);
+    });
+
+    app.get("/addedToys", async (req, res) => {
+      const limit = parseInt(req.query.limit);
+      console.log(limit);
+      const result = await addedToyCollection.find().limit(limit).toArray();
+      res.send(result);
+    });
+
+    app.get("/addedToys/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await addedToyCollection.findOne(query);
       res.send(result);
     });
 

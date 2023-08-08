@@ -50,7 +50,6 @@ async function run() {
 
     app.get("/addedToys", async (req, res) => {
       const limit = parseInt(req.query.limit);
-      console.log(limit);
       const result = await addedToyCollection.find().limit(limit).toArray();
       res.send(result);
     });
@@ -59,6 +58,14 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await addedToyCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.delete("/addedToys/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: new ObjectId(id) };
+      const result = await addedToyCollection.deleteOne(query);
       res.send(result);
     });
 

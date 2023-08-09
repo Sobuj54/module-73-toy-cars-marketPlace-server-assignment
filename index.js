@@ -3,6 +3,7 @@ const cors = require("cors");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
+const jwt = require("jsonwebtoken");
 
 const app = express();
 
@@ -21,6 +22,27 @@ const client = new MongoClient(uri, {
   },
 });
 
+const verifyJWT = (req, res, next) => {
+  const authorization = req.headers.authorization;
+  console.log(authorization);
+
+  if (!authorization) {
+    return res
+      .status(401)
+      .send({ error: true, message: "unauthorized access" });
+  }
+  const token = authorization.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN, (error, decoded) => {
+    if (error) {
+      return res
+        .status(401)
+        .send({ error: true, message: "unauthorized access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+};
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -29,6 +51,16 @@ async function run() {
     const toyCollection = client.db("ToyEmporium").collection("Toys");
 
     const addedToyCollection = client.db("ToyEmporium").collection("addedToys");
+
+    // jwt token generation
+    app.post("/jwt", (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN, {
+        expiresIn: "1h",
+      });
+      console.log(token);
+      res.send({ token });
+    });
 
     app.get("/toys", async (req, res) => {
       const result = await toyCollection.find().toArray();
@@ -48,7 +80,13 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/addedToys", async (req, res) => {
+    app.get("/addedToys", verifyJWT, async (req, res) => {
+      const decoded = req.decoded;
+      console.log("decoded at : ", decoded);
+
+      if (decoded.email !== req.query.email) {
+        return res.status(403).send({ error: true, message: "unauthorized" });
+      }
       const limit = parseInt(req.query.limit);
       const result = await addedToyCollection.find().limit(limit).toArray();
       res.send(result);

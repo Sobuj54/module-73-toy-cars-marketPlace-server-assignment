@@ -22,10 +22,9 @@ const client = new MongoClient(uri, {
   },
 });
 
+// jwt verify
 const verifyJWT = (req, res, next) => {
   const authorization = req.headers.authorization;
-  console.log(authorization);
-
   if (!authorization) {
     return res
       .status(401)
@@ -58,7 +57,6 @@ async function run() {
       const token = jwt.sign(user, process.env.ACCESS_TOKEN, {
         expiresIn: "1h",
       });
-      console.log(token);
       res.send({ token });
     });
 
@@ -82,7 +80,8 @@ async function run() {
 
     app.get("/addedToys", verifyJWT, async (req, res) => {
       const decoded = req.decoded;
-      console.log("decoded at : ", decoded);
+      // console.log("decoded at : ", decoded);
+      // decoded at :  { email: 'sobujahmed124@gmail.com', iat: 1691605538, exp: 1691609138 }
 
       if (decoded.email !== req.query.email) {
         return res.status(403).send({ error: true, message: "unauthorized" });
